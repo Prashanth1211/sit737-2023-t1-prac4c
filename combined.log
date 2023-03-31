@@ -1,0 +1,9 @@
+{"level":"error","message":"n2 is Zero","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for addition","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for subtraction","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for multiply","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for division","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for addition","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for subtraction","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for multiply","service":"calculate-service"}
+{"level":"info","message":"Parameters 10 and 20 received for division","service":"calculate-service"}

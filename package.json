@@ -1,0 +1,26 @@
+{
+  "name": "sit737-2023-t1-prac4c",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prashanth1211/sit737-2023-t1-prac4c.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Prashanth1211/sit737-2023-t1-prac4c/issues"
+  },
+  "homepage": "https://github.com/Prashanth1211/sit737-2023-t1-prac4c#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "winston": "^3.8.2"
+  }
+}
