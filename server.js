@@ -4,6 +4,12 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const app= express();
 const winston = require('winston');
+const jwt = require('jsonwebtoken')
+const JWTstrategy = require("passport-jwt").Strategy;
+const authToken = require("./token.json");
+const bcrypt = require('bcrypt');
+const fs = require("fs");
+
 const logger = winston.createLogger({
     level: 'info',
     format: winston.format.json(),
@@ -17,7 +23,8 @@ const logger = winston.createLogger({
       new winston.transports.File({ filename: 'combined.log' }),
     ],
   });
-  
+  const users = [];
+
   //
   // If we're not in production then log to the `console` with the format:
   // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
@@ -39,24 +46,73 @@ const logger = winston.createLogger({
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new LocalStrategy(
-  function (username, password, done) {
-    if (username === 'admin' && password === 'password') {
-      // Successful login
-      return done(null, { username: 'admin' });
-    } else {
-      // Failed login
-      return done(null, false, { message: 'Incorrect username or password.' });
-    }
-  }
-));
 
-app.post('/login', passport.authenticate('local', {
+app.use(passport.session());
+
+//First point of contact - hashes the password and and stores the json in token file
+app.post('/signup', async (req, res) => {
+  try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10)
+    users.push({
+      email: req.body.username,
+      password: hashedPassword
+    })
+    let token = jwt.sign({ name: users }, "TOP_SECRET");
+    fs.writeFile(
+      "token.json",
+      JSON.stringify({ Authorization: `Bearer ${token}` }),
+      (err) => {
+        if (err) throw err; 
+      }
+    );
+    res.redirect(307,'/login')
+  } catch {
+    res.redirect('/')
+  }
+})
+//Second check point - Authenticates with JWT
+app.post('/login', passport.authenticate('jwt', {
   successRedirect: '/Calculator',
   failureRedirect: '/'
 }));
+
+
+function getJwtToken() {
+  console.log("in getJwt");
+  console.log(authToken)
+  return authToken.Authorization?.substring(7); 
+}
+
+passport.use(
+  new JWTstrategy(
+    {
+      secretOrKey: "TOP_SECRET",
+      jwtFromRequest: getJwtToken,
+    },
+
+    async (authToken, done) => {
+      console.log("token: ", authToken);
+
+      if (authToken?.user?.email == "tokenerror") {
+        let testError = new Error(
+          "token error"
+        );
+        return done(testError, false);
+      }
+
+      if (authToken?.user?.email == "emptytoken") {
+        return done(null, false);
+      }
+      if (authToken.name[0].email === users[0]?.email) {
+        return done(null, { username: authToken.name[0].email});
+            } else {
+        return done(null, false, { message: 'Incorrect username or password.' });
+            }
+          
+    }
+  )
+  
+);
 
 passport.serializeUser(function (user, done) {
   done(null, user.username);
@@ -66,7 +122,8 @@ passport.deserializeUser(function (username, done) {
   done(null, { username: username });
 });
 
-app.get('/Calculator', function (req, res) {
+//Third point of contact - routing to next page to acces the apis
+app.get('/Calculator',isAuthentication, function (req, res) {
   res.send(`
   <h1>Simple calculator</h1>
   <p>For addition</p><a href="/add?n1=10&n2=20">Click here</a>
@@ -76,8 +133,17 @@ app.get('/Calculator', function (req, res) {
  `);
 });
 
+function isAuthentication(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.redirect('/');
+  }
+}
 
 
+
+//APIS
 
 const add= (n1,n2) => {
     return n1+n2;
